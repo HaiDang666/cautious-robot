@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "edge-js": "^18.4.0",
+    "edge-js": "^18.4.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
