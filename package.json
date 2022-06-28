@@ -1,0 +1,17 @@
+{
+  "name": "dieoeo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "edge": "^7.10.1",
+    "edge-js": "^18.4.0",
+    "ffi-napi": "^4.0.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
