@@ -1,13 +1,18 @@
 {
   "name": "dieoeo",
   "version": "1.0.0",
-  "description": "",
+  "description": "dieoeo",
   "main": "index.js",
   "dependencies": {
     "edge-js": "^18.4.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "mcs -sdk:4.5 Sample105.cs -target:library"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+git@github.com:HaiDang666/cautious-robot.git"
   },
   "keywords": [],
   "author": "",

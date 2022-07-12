@@ -11,6 +11,11 @@ namespace Sample105
 			return x;
 		}
 
+		public async Task<object> Invoke2(object input)
+		{
+			return "Felix";
+		}
+
 		int Add7(int v) 
 		{
 			return Helper.Add7(v);
