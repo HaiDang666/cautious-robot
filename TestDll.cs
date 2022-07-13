@@ -1,112 +1,156 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace TestDll
 {
-
-
     public class FormationCharacters
-{
-    public string _id;
-    public string key;
-    public string baseKey;
-    public string status;
-    public string[] itemList;
-    public int atk;
-    public int def;
-    public int speed;
-    public int hp;
-    public int level;
-    public string contractAddress;
-    public string nftId;
-    public int position;
-}
-public class BattleUnit
-{
-    public int atk;
-    public int def;
-    public int speed;
-    public int hp;
-    public string _id;
-    public string faction;
-    public BattleUnit(int _atk, int _def, int _speed, int _hp, string __id, string _faction)
     {
-        atk = _atk;
-        def = _def;
-        speed = _speed;
-        hp = _hp;
-        _id = __id;
-        faction = _faction;
+        public string _id;
+        public string key;
+        public string baseKey;
+        public string status;
+        public string[] itemList;
+        public int atk;
+        public int def;
+        public int speed;
+        public int hp;
+        public int level;
+        public string contractAddress;
+        public string nftId;
+        public int position;
     }
-}
-public class BattleProgess
-{
-    public BattleUnit attacker;
-    public BattleUnit target;
-    public int turn;
-    public int order;
-    public string type;
-}
-public class BattleData
-{
-    public bool skip;
-    public int status;
-    public List<BattleProgess> battleProgress;
-}
+    public class BattleUnit
+    {
+        public int atk;
+        public int def;
+        public int speed;
+        public int hp;
+        public string _id;
+        public string faction;
+        public BattleUnit(int _atk, int _def, int _speed, int _hp, string __id, string _faction)
+        {
+            atk = _atk;
+            def = _def;
+            speed = _speed;
+            hp = _hp;
+            _id = __id;
+            faction = _faction;
+        }
+    }
+    public class BattleProgess
+    {
+        public BattleUnit attacker;
+        public BattleUnit target;
+        public int turn;
+        public int order;
+        public string type;
+    }
+    public class BattleData
+    {
+        public bool skip;
+        public int status;
+        public List<BattleProgess> battleProgress = new List<BattleProgess>();
+    }
+
+    public class DistanceWithCharacter
+    {
+        public int distance;
+        public FormationCharacters character;
+    }
+
+    public class InputType
+    {
+        public FormationCharacters[] _userCharacters;
+        public FormationCharacters[] _opponentCharacters;
+    }
+    public class Startup
+    {
+        public async Task<object> Invoke(string input)
+        {
+            InputType _input = JsonConvert.DeserializeObject<InputType>(input);
+            FormationCharacters[] userCharacters = _input._userCharacters;
+            FormationCharacters[] opponentCharacters = _input._opponentCharacters;
+            return GenerateBattleData(userCharacters, opponentCharacters);
+        }
+
+        string GenerateBattleData(FormationCharacters[] _userCharacters, FormationCharacters[] _opponentCharacters)
+        {
+            return BattleProcess.GetBattleData(_userCharacters, _opponentCharacters);
+        }
+    }
 
     static class BattleProcess
     {
-        public static BattleData GetBattleData(FormationCharacters[] _userCharacters, FormationCharacters[] _opponentCharacters)
+        public static string GetBattleData(FormationCharacters[] _userCharacters, FormationCharacters[] _opponentCharacters)
         {
             BattleData _battleData = new BattleData();
-            _battleData.skip = false;
-            _battleData.status = 1;
             _battleData.battleProgress = new List<BattleProgess>();
-
-            BattleProgess battleProgess1 = new BattleProgess();
-            battleProgess1.turn = 1;
-            battleProgess1.order = 1;
-            battleProgess1.type = "Attack";
-            battleProgess1.attacker = new BattleUnit(30, 30, 30, 30, "62bc7e36d47e20163c0447ad", "OurSide");
-            battleProgess1.target = new BattleUnit(10, 10, 0, 20, "627a348d2a246f967f142ebd", "OpposingSide");
-
-            BattleProgess battleProgess2 = new BattleProgess();
-            battleProgess2.turn = 1;
-            battleProgess2.order = 2;
-            battleProgess2.type = "Attack";
-            battleProgess2.attacker = new BattleUnit(15, 15, 15, 15, "62bbf94f59aa4666f6d19b33", "OurSide");
-            battleProgess2.target = new BattleUnit(10, 10, 0, 15, "627a348d2a246f967f142ebd", "OpposingSide");
-
-            BattleProgess battleProgess3 = new BattleProgess();
-            battleProgess3.turn = 2;
-            battleProgess3.order = 1;
-            battleProgess3.type = "Attack";
-            battleProgess3.attacker = new BattleUnit(12, 14, 13, 10, "62bbf90659aa4666f6d19b1a", "OurSide");
-            battleProgess3.target = new BattleUnit(10, 10, 0, 0, "627a348d2a246f967f142ebd", "OpposingSide");
-            _battleData.battleProgress.Add(battleProgess1);
-            _battleData.battleProgress.Add(battleProgess2);
-            _battleData.battleProgress.Add(battleProgess3);
-            return _battleData;
-
-        }
-    }
-
-    public class E {
-        public int a,b;
-    }
-
-    public class Startup
-    {
-        public async Task<object> Invoke(dynamic userCharacters)
-        {
-
-            E x = JsonUtility. ("[{a:1},{b:2}]");
-            return x;
+            _battleData.skip = false;
+            List<FormationCharacters> orderQueue = new List<FormationCharacters>(_userCharacters.Length + _opponentCharacters.Length);
+            orderQueue.AddRange(_userCharacters);
+            orderQueue.AddRange(_opponentCharacters);
+            orderQueue = orderQueue.OrderByDescending(character => character.speed).ToList();
+            for (int i = 0; i < orderQueue.Count; i++)
+            {
+                FormationCharacters currentCharacter = orderQueue[i];
+                if (_userCharacters.Where(character => character._id == orderQueue[i]._id).FirstOrDefault() != null)
+                {
+                    BattleProgess battleProgess = new BattleProgess();
+                    battleProgess.turn = 1;
+                    battleProgess.order = i;
+                    battleProgess.type = "Attack";
+                    FormationCharacters targetCharacter = GetTarget(currentCharacter, _opponentCharacters);
+                    targetCharacter.hp = targetCharacter.hp - (currentCharacter.atk - targetCharacter.def);
+                    battleProgess.attacker = new BattleUnit(currentCharacter.atk, currentCharacter.def, currentCharacter.speed, currentCharacter.hp, currentCharacter._id, "OurSide");
+                    battleProgess.target = new BattleUnit(targetCharacter.atk, targetCharacter.def, targetCharacter.speed, targetCharacter.hp, targetCharacter._id, "OpposingSide");
+                    _battleData.battleProgress.Add(battleProgess);
+                }
+                else if (_opponentCharacters.Where(character => character._id == orderQueue[i]._id).FirstOrDefault() != null)
+                {
+                    BattleProgess battleProgess = new BattleProgess();
+                    battleProgess.turn = 1;
+                    battleProgess.order = i;
+                    battleProgess.type = "Attack";
+                    FormationCharacters targetCharacter = GetTarget(currentCharacter, _userCharacters);
+                    targetCharacter.hp = targetCharacter.hp - (currentCharacter.atk - targetCharacter.def);
+                    battleProgess.attacker = new BattleUnit(currentCharacter.atk, currentCharacter.def, currentCharacter.speed, currentCharacter.hp, currentCharacter._id, "OpposingSide");
+                    battleProgess.target = new BattleUnit(targetCharacter.atk, targetCharacter.def, targetCharacter.speed, targetCharacter.hp, targetCharacter._id, "OurSide");
+                    _battleData.battleProgress.Add(battleProgess);
+                }
+            }
+            return JsonConvert.SerializeObject(_battleData);
         }
 
-        BattleData Add7(FormationCharacters[] _userCharacters, FormationCharacters[] _opponentCharacters)
+        public static FormationCharacters GetTarget(FormationCharacters character, FormationCharacters[] targetCharacters)
         {
-            return BattleProcess.GetBattleData(_userCharacters, _opponentCharacters);
+            int charPos = character.position;
+            DistanceWithCharacter distanceWithCharacter = new DistanceWithCharacter();
+            for (int i = 0; i < targetCharacters.Length; i++)
+            {
+                int tPosition = targetCharacters[i].position;
+                int distance = (charPos / 3 + tPosition / 3) + (tPosition % 3);
+                if (i == 0)
+                {
+                    distanceWithCharacter.distance = distance;
+                    distanceWithCharacter.character = targetCharacters[i];
+                }
+                else
+                {
+                    if (distance < distanceWithCharacter.distance)
+                    {
+                        distanceWithCharacter.distance = distance;
+                        distanceWithCharacter.character = targetCharacters[i];
+                    }
+                }
+            }
+            return distanceWithCharacter.character;
+        }
+
+        public static int ProcessGetTarget(int[] checkPosArr, Dictionary<int, FormationCharacters> _board)
+        {
+            return 1;
         }
     }
 }
